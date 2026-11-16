@@ -1,7 +1,7 @@
 ---
 title: "Laboratorio 1 · Organización en estado **Inicial**"
 subtitle: "Escalera de Madurez de Datos — Fundación Altiplano"
-author: "Escribe aquí tu nombre"
+author: "Mónica Gómez Remolina"
 lang: es
 format:
   html:
@@ -11,52 +11,61 @@ format:
 execute:
   warning: false
   message: false
+editor: 
+  markdown: 
+    wrap: 72
 ---
 
 ## El escenario
 
-La **Fundación Altiplano** lleva su base de donantes en `contactos_2024_FINAL_v3.xlsx`.
-Lo mantiene Marcela, del área de Desarrollo, en su computador. Cuando alguien necesita
-un dato, le escribe a Marcela. Cuando comunicaciones quiere un tablero, alguien exporta
-el archivo a Power BI — y el tablero se rompe cada vez que el archivo cambia.
+La **Fundación Altiplano** lleva su base de donantes en
+`contactos_2024_FINAL_v3.xlsx`. Lo mantiene Marcela, del área de
+Desarrollo, en su computador. Cuando alguien necesita un dato, le
+escribe a Marcela. Cuando comunicaciones quiere un tablero, alguien
+exporta el archivo a Power BI — y el tablero se rompe cada vez que el
+archivo cambia.
 
-No hay dueño del dato, no hay definiciones escritas, no hay reglas de captura. Esto es
-una organización en **nivel 1 (Inicial / ad hoc)**.
+No hay dueño del dato, no hay definiciones escritas, no hay reglas de
+captura. Esto es una organización en **nivel 1 (Inicial / ad hoc)**.
 
-> **El objeto de este laboratorio no es la limpieza del archivo.** La limpieza es el
-> medio. El fin es triple: **establecer qué tan confiable es el dato, determinar qué
-> tan lejos está de ser gobernable, y proponer el primer paso realista.** El diagnóstico
-> y el plan son el entregable; el archivo limpio es un subproducto.
+> **El objeto de este laboratorio no es la limpieza del archivo.** La
+> limpieza es el medio. El fin es triple: **establecer qué tan confiable
+> es el dato, determinar qué tan lejos está de ser gobernable, y
+> proponer el primer paso realista.** El diagnóstico y el plan son el
+> entregable; el archivo limpio es un subproducto.
 
-**Regla que no se negocia:** no modifiques el archivo de `datos/`. Toda corrección se
-hace en código.
+**Regla que no se negocia:** no modifiques el archivo de `datos/`. Toda
+corrección se hace en código.
 
-***
+------------------------------------------------------------------------
 
 ## Cómo leer el código de este documento
 
-Si nunca han programado, estas cuatro convenciones bastan para seguir el laboratorio.
-No hay que memorizarlas: están aquí para consultarlas cuando algo no se entienda.
+Si nunca han programado, estas cuatro convenciones bastan para seguir el
+laboratorio. No hay que memorizarlas: están aquí para consultarlas
+cuando algo no se entienda.
 
-**`<-` asigna un nombre a un resultado.** `fuente <- read_excel(RUTA)` se lee *«llama
-`fuente` al resultado de leer el archivo»*. A partir de ahí, escribir `fuente` devuelve
-esa tabla.
+**`<-` asigna un nombre a un resultado.** `fuente <- read_excel(RUTA)`
+se lee *«llama `fuente` al resultado de leer el archivo»*. A partir de
+ahí, escribir `fuente` devuelve esa tabla.
 
 **`|>` encadena operaciones.** Se lee como *«y luego»*. En
-`datos |> filter(...) |> count(...)`, el resultado de cada paso entra como primer
-argumento del siguiente. Equivale a `count(filter(datos, ...))`, pero se lee en el orden
-en que ocurre.
+`datos |> filter(...) |> count(...)`, el resultado de cada paso entra
+como primer argumento del siguiente. Equivale a
+`count(filter(datos, ...))`, pero se lee en el orden en que ocurre.
 
-**`function(x)` define una operación propia** para no repetirla. Lo que está dentro se
-ejecuta cada vez que se la invoca, sustituyendo `x` por lo que se le pase.
+**`function(x)` define una operación propia** para no repetirla. Lo que
+está dentro se ejecuta cada vez que se la invoca, sustituyendo `x` por
+lo que se le pase.
 
-**`#` marca un comentario.** Todo lo que sigue en esa línea es texto para quien lee, no
-instrucciones para R.
+**`#` marca un comentario.** Todo lo que sigue en esa línea es texto
+para quien lee, no instrucciones para R.
 
-> **Los bloques se ejecutan en orden, de arriba hacia abajo.** Cada uno depende de los
-> anteriores: si saltan uno, los siguientes fallarán porque les faltará un objeto.
+> **Los bloques se ejecutan en orden, de arriba hacia abajo.** Cada uno
+> depende de los anteriores: si saltan uno, los siguientes fallarán
+> porque les faltará un objeto.
 
-***
+------------------------------------------------------------------------
 
 ## Preparación del entorno
 
@@ -94,12 +103,13 @@ sin_tilde <- function(x) stringi::stri_trans_general(x, "Latin-ASCII")
 vacio <- function(x) is.na(x) | trimws(as.character(x)) == ""
 ```
 
-***
+------------------------------------------------------------------------
 
 ## Paso 1 · Abrir el archivo tal como llega
 
-El primer gesto del diagnóstico es **no corregir nada**: abrir el archivo exactamente
-como lo recibiría cualquier persona, y observar qué pasa.
+El primer gesto del diagnóstico es **no corregir nada**: abrir el
+archivo exactamente como lo recibiría cualquier persona, y observar qué
+pasa.
 
 ```{r}
 # read_excel() devuelve un "tibble": una tabla con filas y columnas,
@@ -110,10 +120,16 @@ dim(fuente)              # cuántas filas y cuántas columnas tiene
 names(fuente)[1:5]       # los nombres de las primeras cinco columnas
 ```
 
-**Pregunta 1.1.** Los encabezados no son encabezados. ¿Qué tiene este archivo encima de
-la tabla, y por qué constituye un problema para cualquier proceso automatizado?
+**Pregunta 1.1.** Los encabezados no son encabezados. ¿Qué tiene este
+archivo encima de la tabla, y por qué constituye un problema para
+cualquier proceso automatizado?
 
-*Tu respuesta:*
+***Tu respuesta:*** El archivo tiene una fila en la parte superior que
+dice "FUNDACIÓN ALTIPLANO" y otras celdas vacías, en lugar de comenzar
+directamente con los nombres de las columnas. Por eso, al abrirlo en R,
+aparecen nombres genéricos como ...2, ...3 y ...4. Esto es un problema
+para los procesos automatizados porque no se identifican correctamente
+los campos y se dificulta trabajar con la información de forma ordenada.
 
 ```{r}
 # TODO 1.2 — Vuelve a leer el archivo saltando las filas decorativas.
@@ -172,27 +188,35 @@ cat("Filas en la hoja:", nrow(borrador),
     "| Registros válidos:", nrow(validos), "\n")
 ```
 
-**Pregunta 1.4.** Acabas de establecer qué cuenta como «registro válido». ¿Corresponde
-que esa decisión la tome el analista, solo, en una línea de código? ¿A quién le
-corresponde?
+**Pregunta 1.4.** Acabas de establecer qué cuenta como «registro
+válido». ¿Corresponde que esa decisión la tome el analista, solo, en una
+línea de código? ¿A quién le corresponde?
 
-*Tu respuesta:*
+***Tu respuesta:*** No considero que esta decisión deba tomarla
+únicamente el analista. Las reglas sobre qué se considera un registro
+válido deben definirse con el área responsable de la información, porque
+es quien conoce su significado y uso. El analista puede apoyar este
+proceso, proponer criterios técnicos, socializar las reglas y aplicarlas
+mediante código. Sin embargo, estas deben ser acordadas y validadas por
+quienes conocen y responden por los datos.
 
-***
+------------------------------------------------------------------------
 
 ## Paso 2 · Diagnóstico de calidad
 
-Medimos cuatro de las seis dimensiones vistas en clase. Las otras dos —**oportunidad**
-y **exactitud**— no pueden medirse con este archivo: exigen conocer cuándo se actualizó
-cada dato y contrastarlo contra una fuente externa.
+Medimos cuatro de las seis dimensiones vistas en clase. Las otras dos
+—**oportunidad** y **exactitud**— no pueden medirse con este archivo:
+exigen conocer cuándo se actualizó cada dato y contrastarlo contra una
+fuente externa.
 
-**No usamos ningún paquete que calcule esto automáticamente.** El propósito es ver la
-aritmética: una dimensión de calidad es, en el fondo, un conteo dividido por un total.
+**No usamos ningún paquete que calcule esto automáticamente.** El
+propósito es ver la aritmética: una dimensión de calidad es, en el
+fondo, un conteo dividido por un total.
 
 ### 2.1 Completitud
 
-> **Grado en que están presentes todos los valores que se esperan para describir una
-> entidad.** Se mide contando vacíos sobre el total.
+> **Grado en que están presentes todos los valores que se esperan para
+> describir una entidad.** Se mide contando vacíos sobre el total.
 
 ```{r}
 completitud <- validos |>
@@ -214,12 +238,14 @@ kable(completitud)   # imprime la tabla con formato en el informe
 
 ### 2.2 Validez
 
-> **Grado en que el valor pertenece al conjunto de valores admitidos para ese campo.**
-> Se mide contra el dominio declarado en el diccionario de datos.
+> **Grado en que el valor pertenece al conjunto de valores admitidos
+> para ese campo.** Se mide contra el dominio declarado en el
+> diccionario de datos.
 
-Nótese la dependencia: **sin diccionario no hay dominio, y sin dominio la validez no es
-medible.** Aquí vamos a proponer los dominios nosotros, que es precisamente lo que una
-organización en nivel 1 no tiene escrito en ninguna parte.
+Nótese la dependencia: **sin diccionario no hay dominio, y sin dominio
+la validez no es medible.** Aquí vamos a proponer los dominios nosotros,
+que es precisamente lo que una organización en nivel 1 no tiene escrito
+en ninguna parte.
 
 ```{r}
 # TODO 2.2 — Completa las reglas de validez que faltan.
@@ -245,8 +271,8 @@ kable(validez)
 
 ### 2.3 Unicidad
 
-> **Grado en que cada entidad del mundo real aparece una sola vez en el repositorio.**
-> Se mide buscando duplicados por una llave.
+> **Grado en que cada entidad del mundo real aparece una sola vez en el
+> repositorio.** Se mide buscando duplicados por una llave.
 
 ```{r}
 # n_distinct() cuenta valores diferentes; duplicated() marca las repeticiones
@@ -272,19 +298,36 @@ validos |>
   kable()
 ```
 
-**Pregunta 2.3.** Hay dos problemas distintos aquí: filas idénticas y registros que
-comparten ID pero difieren entre sí. ¿Se resuelven de la misma manera? ¿Cuál de los dos
-**no** puede resolverse con código, y por qué?
+**Pregunta 2.3.** Hay dos problemas distintos aquí: filas idénticas y
+registros que comparten ID pero difieren entre sí. ¿Se resuelven de la
+misma manera? ¿Cuál de los dos **no** puede resolverse con código, y por
+qué?
 
-*Tu respuesta:*
+***Tu respuesta:***
+
+**1. ¿Se resuelven de la misma manera?**
+
+No. Las filas idénticas se pueden identificar y eliminar mediante
+código, porque contienen exactamente la misma información. En cambio,
+los registros que comparten un mismo ID, pero tienen datos diferentes,
+requieren una revisión adicional.
+
+**2. ¿Cuál de los dos no puede resolverse con código y por qué?**
+
+Los registros que comparten el mismo ID, pero tienen información
+diferente, no pueden resolverse únicamente con código, porque se
+necesita determinar cuál información es correcta. Para ello, el área
+responsable de los datos debe revisar los registros y decidir cuál
+conservar o corregir.
 
 ### 2.4 Consistencia
 
-> **Grado en que el dato no se contradice con otros datos relacionados.** Se mide
-> comparando entre sistemas o entre tablas.
+> **Grado en que el dato no se contradice con otros datos
+> relacionados.** Se mide comparando entre sistemas o entre tablas.
 
-En este archivo no hay un segundo sistema contra el cual comparar, así que medimos su
-forma interna: **un mismo valor del mundo real escrito de varias maneras distintas.**
+En este archivo no hay un segundo sistema contra el cual comparar, así
+que medimos su forma interna: **un mismo valor del mundo real escrito de
+varias maneras distintas.**
 
 ```{r}
 # TODO 2.4 — ¿De cuántas formas distintas está escrita la ciudad? ¿Y el género?
@@ -294,18 +337,27 @@ forma interna: **un mismo valor del mundo real escrito de varias maneras distint
 validos |> count(ciudad, sort = TRUE) |> head(10) |> kable()
 ```
 
-**Pregunta 2.4.** El tablero de la Fundación reporta *Bogotá* varias veces como si
-fueran ciudades distintas. ¿De quién es el problema: del analista de BI, de quien captura
-el dato, o de la organización?
+**Pregunta 2.4.** El tablero de la Fundación reporta *Bogotá* varias
+veces como si fueran ciudades distintas. ¿De quién es el problema: del
+analista de BI, de quien captura el dato, o de la organización?
 
-*Tu respuesta:*
+***Tu respuesta:*** Considero que es un problema de la organización,
+porque no existen reglas claras para registrar la información de manera
+uniforme. La persona que captura el dato debe seguir los criterios
+establecidos, pero la organización debe definirlos y comunicarlos. El
+analista de BI puede identificar y corregir estas diferencias para
+presentar la información correctamente, pero no debería ser el único
+responsable de solucionar un problema que se origina desde el registro
+de los datos.
 
-***
+------------------------------------------------------------------------
+
 ## Paso 3 · Limpieza reproducible
 
-Hasta aquí solo observamos. Ahora corregimos — **en código, nunca sobre el archivo**.
-Cada línea de este bloque es una decisión documentada: alguien que lo lea dentro de un
-año sabrá exactamente qué se cambió y podrá repetirlo.
+Hasta aquí solo observamos. Ahora corregimos — **en código, nunca sobre
+el archivo**. Cada línea de este bloque es una decisión documentada:
+alguien que lo lea dentro de un año sabrá exactamente qué se cambió y
+podrá repetirlo.
 
 ```{r}
 # TODO 3.1 — Completa la limpieza. Te dejamos resuelto el caso de la fecha,
@@ -346,40 +398,297 @@ final <- validos |>
   transmute(
     contacto_id     = trimws(id),
     nombre_completo = str_squish(nombre_completo),   # colapsa espacios múltiples en uno
-    fecha_ingreso   = parsear_fecha(fecha_de_ingreso)
-
+    fecha_ingreso   = parsear_fecha(fecha_de_ingreso),
+  
     # TODO: correo   -> minúsculas, y NA si no tiene formato válido
     # TODO: telefono -> sólo dígitos, quita el prefijo 57, NA si no quedan 10
     # TODO: ciudad   -> unifica las variantes en un solo valor por ciudad
     # TODO: genero   -> unifica a F / M / NA
     # TODO: monto_ultima_donacion -> numérico
+    
+# ==================================================
+# DESARROLLO DE LAS REGLAS DE LIMPIEZA
+# ==================================================
+
+# 1.TODO-Correo: Limpiar correos: convertir a minúsculas y marcar como NA los formatos inválidos
+    correo = if_else(
+      !is.na(correo) & str_detect(
+        str_to_lower(str_trim(correo)),
+        "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
+      ),
+      str_to_lower(str_trim(correo)),
+      NA_character_
+    ),
+    
+# 2. TODO-Telefono: Limpiar teléfonos: conservar solo números, retirar el prefijo 57 y validar que después de la limpieza queden exactamente 10 dígitos
+    telefono = {
+      tel <- str_remove_all(as.character(telefono), "\\D")
+      tel <- if_else(
+        str_starts(tel, "57") & nchar(tel) == 12,
+        str_sub(tel, 3),
+        tel
+      )
+      if_else(nchar(tel) == 10, tel, NA_character_)
+    },
+    
+# 3. TODO-Ciudades: Limpiar ciudades: unificar mayúsculas, minúsculas,
+    # tildes y variantes conocidas
+    ciudad = {
+      ciudad_limpia <- str_to_lower(str_trim(ciudad))
+      ciudad_limpia <- str_replace_all(ciudad_limpia, "á", "a")
+      ciudad_limpia <- str_replace_all(ciudad_limpia, "é", "e")
+      ciudad_limpia <- str_replace_all(ciudad_limpia, "í", "i")
+      ciudad_limpia <- str_replace_all(ciudad_limpia, "ó", "o")
+      ciudad_limpia <- str_replace_all(ciudad_limpia, "ú", "u")
+      
+      case_when(
+        ciudad_limpia %in% c("bog", "bogota", "bogota d.c.") ~ "Bogotá",
+        ciudad_limpia == "cali" ~ "Cali",
+        ciudad_limpia == "medellin" ~ "Medellín",
+        ciudad_limpia == "barranquilla" ~ "Barranquilla",
+        ciudad_limpia == "bucaramanga" ~ "Bucaramanga",
+        ciudad_limpia == "cartagena" ~ "Cartagena",
+        ciudad_limpia == "tunja" ~ "Tunja",
+        ciudad_limpia == "pereira" ~ "Pereira",
+        ciudad_limpia == "villavicencio" ~ "Villavicencio",
+        ciudad_limpia == "manizales" ~ "Manizales",
+        TRUE ~ str_to_title(ciudad_limpia)
+      )
+    },
+
+# 4.TODO-Genero: Limpiar género: unificar las categorías en M, F o NA
+genero = {
+  genero_limpio <- str_to_upper(str_trim(as.character(genero)))
+  
+  case_when(
+    genero_limpio %in% c("M", "MASC", "MASCULINO") ~ "M",
+    genero_limpio %in% c("F", "FEM", "FEMENINO") ~ "F",
+    is.na(genero_limpio) | genero_limpio %in% c("", "NA") ~ NA_character_,
+    TRUE ~ NA_character_
+  )
+},
+
+# 5. TODO - Monto de última donación: convertir a numérico
+
+# Limpiar montos: retirar el signo de pesos, espacios
+# y puntos utilizados como separadores de miles
+monto_ultima_donacion = {
+  monto_limpio <- str_remove_all(
+    as.character(monto_ultima_donacion),
+    "[^0-9]"
+  )
+  
+  as.numeric(na_if(monto_limpio, ""))
+}
+    
   )
 
+# ==================================================
+# COMPROBACIÓN DE RESULTADOS DE LA LIMPIEZA
+# ==================================================
+
+# Mostrar la cantidad de registros después de la limpieza
 cat("Registros tras limpieza:", nrow(final), "\n")
+
+# --------------------------------------------------
+# 1. Diagnóstico del campo Correo
+# --------------------------------------------------
+
+# Contar los correos válidos después de la limpieza
+sum(!is.na(final$correo))
+
+# --------------------------------------------------
+# 2. Diagnóstico del campo Telefono
+# --------------------------------------------------
+
+# Revisar los primeros 10 teléfonos antes de la limpieza
+head(validos$telefono, 10)
+
+# Revisar los primeros 10 teléfonos después de la limpieza
+head(final$telefono, 10)
+
+# Contar los teléfonos válidos después de la limpieza
+sum(!is.na(final$telefono))
+
+# --------------------------------------------------
+# 3.  Diagnóstico del campo Ciudad
+# --------------------------------------------------
+
+# Revisar las ciudades registradas antes de la limpieza
+validos |>
+  count(ciudad, sort = TRUE) |>
+  print(n = Inf)
+
+# Revisar las ciudades después de la limpieza
+final |>
+  count(ciudad, sort = TRUE) |>
+  print(n = Inf)
+
+# --------------------------------------------------
+# 4.  Diagnóstico del campo Genero
+# --------------------------------------------------
+
+# Revisar los valores de género antes de la limpieza
+validos |>
+  count(genero, sort = TRUE) |>
+  print(n = Inf)
+
+# Revisar los valores de género después de la limpieza
+final |>
+  count(genero, sort = TRUE) |>
+  print(n = Inf)
+
+# --------------------------------------------------
+# 5. Diagnóstico del campo Monto de última donación
+# --------------------------------------------------
+
+# Revisar los primeros 10 valores originales de las donaciones
+head(validos$monto_ultima_donacion, 10)
+
+# Revisar la estructura y el tipo de dato de la columna
+str(validos$monto_ultima_donacion)
+
+# --------------------------------------------------
+# 5. Comprobación del monto de última donación
+# --------------------------------------------------
+
+# Revisar los primeros 10 montos antes de la limpieza
+head(validos$monto_ultima_donacion, 10)
+
+# Revisar los primeros 10 montos después de la limpieza
+head(final$monto_ultima_donacion, 10)
+
+# Verificar el tipo de dato después de la limpieza
+str(final$monto_ultima_donacion)
+
+# Contar los montos válidos después de la limpieza
+sum(!is.na(final$monto_ultima_donacion))
 ```
 
-**Pregunta 3.2.** ¿Eliminaste los registros con ID repetido o los marcaste para revisión?
-Defiende tu decisión ante una directora que pide «una base limpia para el viernes».
+**Pregunta 3.2.** ¿Eliminaste los registros con ID repetido o los
+marcaste para revisión? Defiende tu decisión ante una directora que pide
+«una base limpia para el viernes».
 
-*Tu respuesta:*
+***Tu respuesta:*** Decidí marcar los registros con ID repetido para
+revisión, en lugar de eliminarlos automáticamente. Aunque se necesita
+entregar una base limpia, no sería adecuado borrar información sin
+confirmar primero si los registros corresponden a la misma persona o
+cuál contiene los datos correctos. Las filas completamente idénticas
+pueden identificarse y tratarse mediante código, pero los registros con
+información diferente deben ser revisados por el área responsable. De
+esta manera, se evita perder información y se puede entregar una base
+depurada sin tomar decisiones apresuradas.
 
 ```{r}
 # TODO 3.3 — Construye una tabla ANTES vs DESPUÉS de al menos cuatro indicadores.
 #            Sugerencia: % de correos válidos, formas distintas de escribir la ciudad,
 #            % de montos numéricos, formatos de fecha distintos.
+
+# ==================================================
+# PASO 3.3. COMPARACIÓN ANTES VS. DESPUÉS
+# ==================================================
+
+# 1. Construcción de indicadores de calidad
+
+# Crear una tabla para comparar los datos originales y con los datos después de la limpieza
+
+comparacion <- tibble(
+  
+  # Definir los indicadores que se van a comparar
+  indicador = c(
+    "Correos válidos (%)",
+    "Formas distintas de ciudad",
+    "Montos convertibles (%)",
+    "Formatos distintos de fecha"
+  ),
+  
+  # Calcular los resultados antes de la limpieza
+  antes = c(
+    
+    # Porcentaje de correos con formato válido
+    round(mean(
+      !is.na(validos$correo) &
+        str_detect(
+          str_to_lower(str_trim(validos$correo)),
+          "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
+        )
+    ) * 100, 1),
+    
+    # Cantidad de formas diferentes de escribir la ciudad
+    n_distinct(validos$ciudad, na.rm = TRUE),
+    
+    # Porcentaje de montos que pueden convertirse a números
+    round(mean(
+      !is.na(validos$monto_ultima_donacion) &
+        str_remove_all(
+          as.character(validos$monto_ultima_donacion),
+          "[^0-9]"
+        ) != ""
+    ) * 100, 1),
+    
+    # Cantidad de formatos de fecha originales identificados
+    sum(c(
+      any(str_detect(validos$fecha_de_ingreso,
+                     "^\\d{2}/\\d{2}/\\d{4}$"), na.rm = TRUE),
+      any(str_detect(validos$fecha_de_ingreso,
+                     "^\\d{4}-\\d{2}-\\d{2}$"), na.rm = TRUE),
+      any(str_detect(validos$fecha_de_ingreso,
+                     "^\\d{2}-[a-zA-Z]{3}-\\d{2}$"), na.rm = TRUE)
+    ))
+  ),
+  
+  # Calcular los resultados después de la limpieza
+  despues = c(
+    
+    # Porcentaje de correos válidos después de la limpieza
+    round(mean(!is.na(final$correo)) * 100, 1),
+    
+    # Cantidad de ciudades después de unificar sus variantes
+    n_distinct(final$ciudad, na.rm = TRUE),
+    
+    # Porcentaje de montos numéricos después de la limpieza
+    round(mean(!is.na(final$monto_ultima_donacion)) * 100, 1),
+    
+    # Cantidad de formatos de fecha después de estandarizar
+    ifelse(any(!is.na(final$fecha_ingreso)), 1, 0)
+  )
+)
+
+# --------------------------------------------------
+# 2. Presentación de resultados
+# --------------------------------------------------
+
+# Mostrar la tabla comparativa antes y después
+kable(comparacion)
 ```
 
-**Pregunta 3.4.** Revisa el porcentaje de correos válidos antes y después. ¿Subió? ¿Qué
-indica eso sobre lo que la limpieza **puede** y **no puede** corregir?
+**Pregunta 3.4.** Revisa el porcentaje de correos válidos antes y
+después. ¿Subió? ¿Qué indica eso sobre lo que la limpieza **puede** y
+**no puede** corregir?
 
-*Tu respuesta:*
+***Tu respuesta:***
 
-***
+- El porcentaje de correos válidos se mantuvo en 87,2 % antes y después
+  de la limpieza, por lo que no presentó un aumento.
+
+- Esto indica que la limpieza permitió estandarizar los correos que ya
+  tenían un formato válido y marcar como NA aquellos que no cumplían con
+  la estructura esperada.
+
+- Sin embargo, no puede corregir direcciones incompletas, recuperar
+  información faltante ni confirmar si una dirección de correo realmente
+  existe.
+
+- Por tanto, la limpieza mejora la organización y calidad del dato, pero
+  no puede solucionar por sí sola los errores que requieren información
+  adicional o validación externa.
+
+------------------------------------------------------------------------
 
 ## Paso 4 · Diccionario de datos
 
-Este será el primer artefacto de gobierno que la Fundación tenga. Parte se genera con
-código; parte sólo la puede completar el negocio.
+Este será el primer artefacto de gobierno que la Fundación tenga. Parte
+se genera con código; parte sólo la puede completar el negocio.
 
 ```{r}
 # TODO 4.1 — Genera el diccionario: campo, tipo, completitud, valores únicos, ejemplo.
@@ -387,20 +696,117 @@ código; parte sólo la puede completar el negocio.
 #
 #            Útiles: names() para los campos, sapply(final, class) para los tipos,
 #            n_distinct() para los valores únicos.
+
+
+# ==================================================
+# PASO 4.1. CONSTRUCCIÓN DEL DICCIONARIO DE DATOS
+# ==================================================
+
+# 1. Crear una tabla con la información técnica de cada campo
+
+diccionario <- tibble(
+  
+  # Obtener los nombres de las columnas
+  campo = names(final),
+  
+  # Identificar el tipo de dato de cada columna
+  tipo = vapply(final, function(x) class(x)[1], character(1)),
+  
+  # Calcular el porcentaje de datos completos
+  completitud_pct = vapply(
+    final,
+    function(x) round(mean(!is.na(x)) * 100, 1),
+    numeric(1)
+  ),
+  
+  # Contar los valores diferentes de cada campo
+  valores_unicos = vapply(
+    final,
+    function(x) n_distinct(x, na.rm = TRUE),
+    numeric(1)
+  ),
+  
+  # Mostrar un ejemplo de cada campo
+  ejemplo = vapply(
+    final,
+    function(x) {
+      valores <- na.omit(as.character(x))
+      if (length(valores) == 0) NA_character_ else valores[1]
+    },
+    character(1)
+  )
+)
+
+
+# --------------------------------------------------
+# 2. Incorporación de información manual al diccionario
+# --------------------------------------------------
+
+# Añadir descripción, dominio permitido y responsable
+# para cada campo de la base de datos
+
+diccionario <- diccionario |>
+  mutate(
+    
+    # Describir el significado de cada campo
+    descripcion = c(
+      "Identificador único del contacto",
+      "Nombre completo del contacto",
+      "Fecha de ingreso del contacto",
+      "Dirección de correo electrónico",
+      "Número telefónico del contacto",
+      "Ciudad de residencia del contacto",
+      "Género registrado del contacto",
+      "Valor de la última donación realizada"
+    ),
+    
+    # Definir los valores o formatos permitidos
+    dominio_permitido = c(
+      "Identificadores alfanuméricos; reglas por validar",
+      "Texto con nombres y apellidos",
+      "Fechas válidas en formato AAAA-MM-DD",
+      "Correo electrónico con formato válido",
+      "Números de 10 dígitos",
+      "Bogotá, Medellín, Cali, Barranquilla, Cartagena, Bucaramanga, Tunja, Pereira, Manizales y Villavicencio",
+      "M, F o NA",
+      "Valores numéricos; rango por validar"
+    ),
+    
+    # Registrar el responsable de cada dato
+    responsable = rep("Por definir con la Fundación", 8)
+  )
+
+
+# --------------------------------------------------
+# 3. Presentación del diccionario de datos
+# --------------------------------------------------
+
+# Mostrar el diccionario completo
+kable(diccionario)
 ```
 
-**Pregunta 4.2.** ¿Qué columna de tu diccionario **no puedes completar tú solo**? ¿Qué
-revela eso sobre el estado de gobierno de esta organización?
+**Pregunta 4.2.** ¿Qué columna de tu diccionario **no puedes completar
+tú solo**? ¿Qué revela eso sobre el estado de gobierno de esta
+organización?
 
-*Tu respuesta:*
+***Tu respuesta:*** No puedo completar por mi cuenta las columnas de
+descripción, dominio permitido y responsable, porque requieren el
+conocimiento y la validación de las áreas que utilizan y administran
+cada dato. Esto evidencia que es necesario fortalecer la definición de
+responsabilidades, establecer reglas claras sobre los valores permitidos
+y documentar el significado de la información. También demuestra que el
+gobierno de datos no depende únicamente del trabajo técnico, sino de la
+participación y el compromiso de las personas que conocen los procesos
+de la organización.
 
-***
+------------------------------------------------------------------------
 
 ## Paso 5 · Plan de gobierno mínimo viable
 
-La tentación aquí es proponer un programa completo: comité de datos, política
-corporativa, catálogo, herramienta. **Una organización en nivel 1 no puede absorber
-eso.** El objetivo no es llegar al nivel 5: es llegar al **nivel 2**.
+La tentación aquí es proponer un programa completo: comité de datos,
+política corporativa, catálogo, herramienta. **Una organización en nivel
+1 no puede absorber eso.** El objetivo no es llegar al nivel 5: es
+llegar al **nivel 2**.
 
 ```{r}
 # TODO 5.1 — Construye tu plan: entre 4 y 6 acciones, cada una con
@@ -408,23 +814,97 @@ eso.** El objetivo no es llegar al nivel 5: es llegar al **nivel 2**.
 #            Al menos una debe atacar la causa EN EL ORIGEN, no el síntoma.
 #
 #            Sugerencia: arma un tibble() con esas columnas y muéstralo con kable().
+
+# ==================================================
+# PASO 5.1. PLAN DE GOBIERNO MÍNIMO VIABLE
+# ==================================================
+
+# Construir el plan de acciones para avanzar del nivel 1 al nivel 2
+
+plan_gobierno <- tibble(
+  accion = c(
+    "Designar un responsable de la información de donantes y una persona de respaldo.",
+    "Documentar las definiciones de los campos y las reglas básicas para registrar y actualizar la información.",
+    "Establecer un procedimiento sencillo para almacenar, respaldar y compartir la base actualizada con accesos controlados.",
+    "Implementar una revisión periódica de la calidad de los registros.",
+    "Documentar y estandarizar la estructura de los datos que utiliza Power BI para evitar fallas en el tablero."
+  ),
+  
+  prioridad = c(
+    "Alta",
+    "Alta",
+    "Alta",
+    "Media",
+    "Alta"
+  ),
+  
+  por_que_ahora = c(
+    "Actualmente la base depende de Marcela y se encuentra almacenada en su computador. Es necesario reducir esa dependencia.",
+    "No existen definiciones escritas ni reglas de captura. Esta acción aborda una causa de origen de los problemas de calidad.",
+    "La información se encuentra concentrada en un solo computador y su consulta depende de solicitudes individuales.",
+    "Se identificaron datos faltantes, correos inválidos, identificadores repetidos y variaciones en los registros.",
+    "Las modificaciones del archivo generan fallas en el tablero y obligan a realizar nuevas exportaciones."
+  ),
+  
+  responsable_propuesto = c(
+    "Dirección del área de Desarrollo",
+    "Responsable de la base de donantes",
+    "Área de Desarrollo, con apoyo de TIC",
+    "Responsable de la base de donantes",
+    "Responsable de la base, con apoyo de Comunicaciones"
+  ),
+  
+  plazo = c(
+    "1 mes",
+    "1 mes",
+    "2 meses",
+    "Trimestral",
+    "2 meses"
+  )
+)
+
+# --------------------------------------------------
+# Presentación del plan de gobierno
+# --------------------------------------------------
+
+kable(plan_gobierno)
 ```
 
-**Pregunta 5.2.** Si sólo pudieras ejecutar **una** de tus acciones, ¿cuál eliges y por qué?
+**Pregunta 5.2.** Si sólo pudieras ejecutar **una** de tus acciones,
+¿cuál eliges y por qué?
 
-*Tu respuesta:*
+***Tu respuesta:***
 
-**Pregunta 5.3.** Nombra una acción que deliberadamente **dejaste fuera** por no
-corresponder al nivel de madurez de esta organización, y explica por qué.
+- Implementaría primero la designación de un responsable de la
+  información de donantes y una persona de respaldo, porque actualmente
+  la gestión de la base depende de Marcela y el archivo está almacenado
+  en su computador.
 
-*Tu respuesta:*
+- Definir estas responsabilidades permitiría reducir esa dependencia,
+  facilitar la continuidad del manejo de la información y establecer una
+  base para implementar posteriormente las demás acciones del plan.
 
-***
+**Pregunta 5.3.** Nombra una acción que deliberadamente **dejaste
+fuera** por no corresponder al nivel de madurez de esta organización, y
+explica por qué.
+
+***Tu respuesta:*** Dejaría por fuera la implementación de una
+plataforma especializada de gobierno de datos con herramientas de
+automatización y controles avanzados. Aunque podría aportar beneficios a
+la Fundación, considero que todavía no es una prioridad, porque primero
+se deben establecer responsables, documentar las definiciones de los
+datos y organizar los procedimientos básicos de almacenamiento y
+actualización. Implementar una herramienta de este tipo sin contar con
+esas bases podría aumentar la complejidad del proceso sin resolver los
+problemas de origen.
+
+------------------------------------------------------------------------
 
 ## Paso 6 · Entregar el dato limpio
 
-El diagnóstico y el plan son para la organización. **El archivo limpio es para quien va
-a construir el tablero** — que en este caso eres tú mismo.
+El diagnóstico y el plan son para la organización. **El archivo limpio
+es para quien va a construir el tablero** — que en este caso eres tú
+mismo.
 
 ```{r}
 # dir.create() crea la carpeta de salida.
@@ -440,45 +920,65 @@ cat("Escrito:", nrow(final), "registros ·",
     ncol(final), "columnas  ->  salidas/contactos_limpio.csv\n")
 ```
 
-**Para descargarlo:** en el panel *Files* de Posit Cloud entra a `salidas/`, marca la
-casilla del archivo y usa **More → Export…**
+**Para descargarlo:** en el panel *Files* de Posit Cloud entra a
+`salidas/`, marca la casilla del archivo y usa **More → Export…**
 
-> **Obsérvese lo que acaba de ocurrir.** El archivo original permanece intacto en
-> `datos/`, sin una sola modificación. Todo lo que cambió está escrito en código, en este
-> documento, y cualquier persona puede volver a ejecutarlo y obtener exactamente el mismo
-> resultado.
+> **Obsérvese lo que acaba de ocurrir.** El archivo original permanece
+> intacto en `datos/`, sin una sola modificación. Todo lo que cambió
+> está escrito en código, en este documento, y cualquier persona puede
+> volver a ejecutarlo y obtener exactamente el mismo resultado.
 >
 > **Esa es la diferencia entre corregir un archivo y gobernar un dato.**
 
 ### 6.1 · Súbelo a Tableau y compáralo
 
-Con el `.csv` descargado, en Tableau: **New → Workbook → Files → Upload from computer**.
-Arrastra **`ciudad`** a Filas, igual que hiciste con el archivo sin limpiar.
+Con el `.csv` descargado, en Tableau: **New → Workbook → Files → Upload
+from computer**. Arrastra **`ciudad`** a Filas, igual que hiciste con el
+archivo sin limpiar.
 
-| | Archivo crudo | Tu archivo limpio |
-|---|---|---|
-| Valores distintos de ciudad | | |
-| Registros sin ciudad | | |
-| Formatos de fecha | | |
+|                             | Archivo crudo | Tu archivo limpio |
+|-----------------------------|---------------|-------------------|
+| Valores distintos de ciudad | 14            | 10                |
+| Registros sin ciudad        | 31            | 0                 |
+| Formatos de fecha           | 3             | 1                 |
 
-**Pregunta 6.2.** Con el archivo crudo, Tableau mostraba 14 ciudades mientras el archivo
-contenía 27 grafías distintas, para 10 ciudades reales. ¿Cuántas muestra ahora, y a qué
-se debe el cambio?
+**Pregunta 6.2.** Con el archivo crudo, Tableau mostraba 14 ciudades
+mientras el archivo contenía 27 grafías distintas, para 10 ciudades
+reales. ¿Cuántas muestra ahora, y a qué se debe el cambio?
 
-*Tu respuesta:*
+***Tu respuesta:*** Ahora Tableau muestra 10 ciudades. El cambio se debe
+a que durante la limpieza se unificaron las diferentes formas de
+escribir una misma ciudad, como el uso de mayúsculas, minúsculas, tildes
+y abreviaturas. De esta manera, los registros que antes aparecían como
+categorías diferentes ahora se agrupan bajo un mismo nombre. No
+cambiaron las ciudades reales, sino la forma de organizar y presentar la
+información.
 
-**Pregunta 6.3.** Ese `.csv` lo descargaste y lo subiste manualmente. Si mañana llega
-`contactos_2025.xlsx`, ¿qué parte de este trabajo se repite sola y qué parte hay que
-rehacer a mano? **Esa parte manual es donde se interrumpe el linaje.**
+**Pregunta 6.3.** Ese `.csv` lo descargaste y lo subiste manualmente. Si
+mañana llega `contactos_2025.xlsx`, ¿qué parte de este trabajo se repite
+sola y qué parte hay que rehacer a mano? **Esa parte manual es donde se
+interrumpe el linaje.**
 
-*Tu respuesta:*
+***Tu respuesta:***
 
-***
+- La parte que se repite sola es el proceso de limpieza realizado en el
+  código del archivo .qmd. Al ejecutar nuevamente el documento con una
+  nueva base de datos, se pueden aplicar las mismas reglas para limpiar
+  correos, teléfonos, ciudades, género y montos.
+
+- La parte que tendría que rehacer manualmente es descargar el nuevo
+  archivo, reemplazar la base anterior en el proceso, ejecutar el
+  código, generar nuevamente el archivo CSV y cargarlo en Tableau. Por
+  eso, el proceso todavía tiene una parte manual que interrumpe el
+  linaje de los datos.
+
+------------------------------------------------------------------------
 
 ## Entrega
 
-Haz `commit` y `push` de este `.qmd` y del `.html` renderizado. Verifica que el documento
-renderice completo antes de entregar.
+Haz `commit` y `push` de este `.qmd` y del `.html` renderizado. Verifica
+que el documento renderice completo antes de entregar.
 
-**El `.csv` de `salidas/` no se versiona** — está en el `.gitignore`, porque se regenera
-ejecutando el código. Ese archivo se descarga para Tableau; no se sube al repositorio.
+**El `.csv` de `salidas/` no se versiona** — está en el `.gitignore`,
+porque se regenera ejecutando el código. Ese archivo se descarga para
+Tableau; no se sube al repositorio.
